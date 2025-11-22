@@ -1,0 +1,53 @@
+body {
+  background-color: #f8f9fa;
+  color: #212529;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#equation-form {
+  max-width: 700px;
+}
+
+#equation-output {
+  font-family: monospace;
+  background-color: #e9ecef;
+  border-radius: 5px;
+  white-space: pre-wrap;
+}
+
+#result-canvas {
+  display: block;
+  margin: 0 auto;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.modal .form-label {
+  font-weight: 600;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+.text-danger {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  #result-canvas {
+    width: 100%;
+    height: auto;
+  }
+}

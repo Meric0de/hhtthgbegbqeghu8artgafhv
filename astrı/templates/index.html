@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Astrophysics Equation Solver</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">AstroSolver</a>
+      <div class="d-flex">
+        <button id="login-btn" class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+        <button id="register-btn" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1 class="mb-4">Solve Astrophysics Equations</h1>
+    <form id="equation-form" class="mb-3">
+      <div class="mb-3">
+        <label for="equation-input" class="form-label">Enter differential equation (e.g. dy/dx = -0.1 * y):</label>
+        <input type="text" class="form-control" id="equation-input" placeholder="dy/dx = -0.1 * y" required />
+      </div>
+      <button type="submit" class="btn btn-primary">Solve</button>
+    </form>
+
+    <pre id="equation-output" class="p-3 bg-light border rounded" style="height: 150px; overflow-y: auto;"></pre>
+
+    <canvas id="result-canvas" width="700" height="400" class="border rounded mt-4"></canvas>
+  </main>
+
+  <!-- Login Modal -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="login-form" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="loginLabel">Login</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="login-error" class="text-danger mb-2"></div>
+          <div class="mb-3">
+            <label for="login-username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="login-username" required />
+          </div>
+          <div class="mb-3">
+            <label for="login-password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="login-password" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Login</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="register-form" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="registerLabel">Register</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="register-error" class="text-danger mb-2"></div>
+          <div class="mb-3">
+            <label for="register-username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="register-username" required />
+          </div>
+          <div class="mb-3">
+            <label for="register-email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="register-email" required />
+          </div>
+          <div class="mb-3">
+            <label for="register-password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="register-password" required />
+          </div>
+          <div class="mb-3">
+            <label for="register-password-confirm" class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" id="register-password-confirm" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Register</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="/static/dist/bundle.js"></script>
+
+  <script>
+    // Auth AJAX handlers
+    async function ajaxPost(url, data) {
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      return resp.json();
+    }
+
+    const loginForm = document.getElementById("login-form");
+    const loginError = document.getElementById("login-error");
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      loginError.textContent = "";
+      const username = document.getElementById("login-username").value.trim();
+      const password = document.getElementById("login-password").value;
+      if (!username || !password) {
+        loginError.textContent = "Please fill all fields";
+        return;
+      }
+      try {
+        const res = await ajaxPost("/auth/login", {username, password});
+        if (res.success) {
+          loginError.textContent = "Login successful!";
+          const loginModal = bootstrap.Modal.getInstance(document.getElementById("loginModal"));
+          loginModal.hide();
+        } else {
+          loginError.textContent = res.error || "Login failed";
+        }
+      } catch (err) {
+        loginError.textContent = "Error communicating with server.";
+      }
+    });
+
+    const registerForm = document.getElementById("register-form");
+    const registerError = document.getElementById("register-error");
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      registerError.textContent = "";
+      const username = document.getElementById("register-username").value.trim();
+      const email = document.getElementById("register-email").value.trim();
+      const password = document.getElementById("register-password").value;
+      const passwordConfirm = document.getElementById("register-password-confirm").value;
+      if (!username || !email || !password || !passwordConfirm) {
+        registerError.textContent = "Please fill all fields";
+        return;
+      }
+      if (password !== passwordConfirm) {
+        registerError.textContent = "Passwords do not match";
+        return;
+      }
+      try {
+        const res = await ajaxPost("/auth/register", {username, email, password});
+        if (res.success) {
+          registerError.textContent = "Registration successful! You can now login.";
+          const registerModal = bootstrap.Modal.getInstance(document.getElementById("registerModal"));
+          registerModal.hide();
+        } else {
+          registerError.textContent = res.error || "Registration failed";
+        }
+      } catch (err) {
+        registerError.textContent = "Error communicating with server.";
+      }
+    });
+  </script>
+</body>
+</html>
